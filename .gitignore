@@ -1,7 +1,7 @@
 (function(Scratch) {
     'use strict';
 
-  const firebaseURL = 'https://data-c5b8e.firebaseio.com/players.json';
+  const firebaseURL = 'https://data-c5b8e-default-rtdb.firebaseio.com/players.json';
 
     class PenguinDatastore {
         constructor() {
