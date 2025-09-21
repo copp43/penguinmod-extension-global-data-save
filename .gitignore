@@ -1,24 +1,101 @@
-# Compiled class file
-*.class
+(function(Scratch) {
+    'use strict';
 
-# Log file
-*.log
+    const firebaseURL = 'https://<your-project-id>.firebaseio.com/players.json';
 
-# BlueJ files
-*.ctxt
+    class PenguinDatastore {
+        constructor() {
+            this.values = {};
+        }
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+        getInfo() {
+            return {
+                id: 'penguindatastore',
+                name: 'Penguin Datastore',
+                color1: '#4DB6E1',
+                color2: '#357CA5',
+                blocks: [
+                    {
+                        opcode: 'addValue',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'add [AMOUNT] to [PLAYER] value',
+                        arguments: {
+                            AMOUNT: { type: Scratch.ArgumentType.NUMBER, defaultValue: 1 },
+                            PLAYER: { type: Scratch.ArgumentType.STRING, defaultValue: 'player1' }
+                        }
+                    },
+                    {
+                        opcode: 'setValue',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'set [PLAYER] value to [VALUE]',
+                        arguments: {
+                            PLAYER: { type: Scratch.ArgumentType.STRING, defaultValue: 'player1' },
+                            VALUE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 0 }
+                        }
+                    },
+                    {
+                        opcode: 'getValue',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: '[PLAYER] value',
+                        arguments: {
+                            PLAYER: { type: Scratch.ArgumentType.STRING, defaultValue: 'player1' }
+                        }
+                    },
+                    {
+                        opcode: 'saveValues',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'save all values to Firebase'
+                    },
+                    {
+                        opcode: 'loadValues',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'load all values from Firebase'
+                    }
+                ]
+            };
+        }
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+        addValue(args) {
+            const p = args.PLAYER;
+            const amt = Number(args.AMOUNT);
+            if (!this.values[p]) this.values[p] = 0;
+            this.values[p] += amt;
+        }
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+        setValue(args) {
+            const p = args.PLAYER;
+            this.values[p] = Number(args.VALUE);
+        }
+
+        getValue(args) {
+            const p = args.PLAYER;
+            return this.values[p] || 0;
+        }
+
+        async saveValues() {
+            try {
+                await fetch(firebaseURL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.values)
+                });
+                console.log('Saved to Firebase', this.values);
+            } catch (e) {
+                console.error('Save failed', e);
+            }
+        }
+
+        async loadValues() {
+            try {
+                const res = await fetch(firebaseURL);
+                const data = await res.json();
+                this.values = data || {};
+                console.log('Loaded from Firebase', this.values);
+            } catch (e) {
+                console.error('Load failed', e);
+            }
+        }
+    }
+
+    Scratch.extensions.register(new PenguinDatastore());
+})(Scratch);
